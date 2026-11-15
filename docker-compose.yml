@@ -1,0 +1,101 @@
+services:
+  # ---------- usuarios-ms ----------
+  usuarios:
+    build: ./usuarios-ms
+    image: roomflow-usuarios
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-usuarios:5432/roomflow_usuarios
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      db-usuarios:
+        condition: service_healthy
+
+  db-usuarios:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: roomflow_usuarios
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d roomflow_usuarios"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - usuarios-data:/var/lib/postgresql/data
+
+  # ---------- salas-ms ----------
+  salas:
+    build: ./salas-ms
+    image: roomflow-salas
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-salas:5432/roomflow_salas
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      db-salas:
+        condition: service_healthy
+
+  db-salas:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: roomflow_salas
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d roomflow_salas"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - salas-data:/var/lib/postgresql/data
+
+  # ---------- reservas-ms ----------
+  reservas:
+    build: ./reservas-ms
+    image: roomflow-reservas
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-reservas:5432/roomflow_reservas
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      # Dentro da rede do compose, o nome do serviço é o endereço.
+      USUARIOS_URL: http://usuarios:8082
+      SALAS_URL: http://salas:8083
+    depends_on:
+      db-reservas:
+        condition: service_healthy
+
+  db-reservas:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: roomflow_reservas
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d roomflow_reservas"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - reservas-data:/var/lib/postgresql/data
+
+volumes:
+  usuarios-data:
+  salas-data:
+  reservas-data:
