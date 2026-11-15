@@ -4,3 +4,6 @@
 [submodule "salas-ms"]
 	path = salas-ms
 	url = https://github.com/pedrobuzolin/roomflow-salas-ms.git
+[submodule "reservas-ms"]
+	path = reservas-ms
+	url = https://github.com/pedrobuzolin/roomflow-reservas-ms.git
